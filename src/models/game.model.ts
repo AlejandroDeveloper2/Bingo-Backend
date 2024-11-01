@@ -1,8 +1,8 @@
 import { Schema, model } from "mongoose";
 
-import { BingoBall, BingoCard, Game, User } from "@interfaces/.";
+import { BingoBall, BingoCard, Game, Player } from "@interfaces/.";
 
-const PlayerSchema = new Schema<Pick<User, "email" | "name">>(
+const PlayerSchema = new Schema<Player>(
   {
     name: {
       type: String,
@@ -10,6 +10,10 @@ const PlayerSchema = new Schema<Pick<User, "email" | "name">>(
     },
     email: {
       type: String,
+      required: true,
+    },
+    correctBallSelections: {
+      type: Number,
       required: true,
     },
   },
@@ -28,6 +32,14 @@ const BingoBallSchema = new Schema<BingoBall>(
     },
     number: {
       type: Number,
+      required: true,
+    },
+    selected: {
+      type: Boolean,
+      required: true,
+    },
+    enabled: {
+      type: Boolean,
       required: true,
     },
   },

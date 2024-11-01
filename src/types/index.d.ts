@@ -9,7 +9,8 @@ type ErrorType =
   | "INVALID_TOKEN"
   | "INVALID_SESSION"
   | "SERVER_ERROR"
-  | "BAD_REQUEST";
+  | "BAD_REQUEST"
+  | "EMPTY";
 
 type GameModeType = "full" | "diagonal" | "vertical" | "horizontal" | "corners";
 type BingoBallNameType = "B" | "I" | "N" | "G" | "O";
@@ -29,7 +30,7 @@ interface User {
   name: string;
   email: string;
   password: string;
-  sessionStatus: SessionStatus;
+  sessionStatus: SessionStatusType;
 }
 
 interface UserAuth {
@@ -46,9 +47,23 @@ interface UserSessionStatus {
   sessionStatus: SessionStatus;
 }
 
+interface Player extends Pick<User, "email" | "name"> {
+  correctBallSelections: number;
+}
+
 interface BingoBall {
   name: BingoBallNameType;
   number: number;
+  selected: boolean;
+  enabled: boolean;
+}
+
+interface BoardModel {
+  B: number[];
+  I: number[];
+  N: number[];
+  G: number[];
+  O: number[];
 }
 
 interface BingoCard {
@@ -58,12 +73,28 @@ interface BingoCard {
 }
 
 interface Game {
-  players: User[];
+  players: Player[];
   winner: User | null;
   bingoCards: BingoCard[];
   randomBingoBalls: BingoBall[];
   gameMode: GameModeType;
   gameStatus: GameStatusType;
+}
+
+interface Range {
+  start: number;
+  end: number;
+}
+
+interface PlayerSelection {
+  playerEmail: string;
+  selectedBall: BingoBall;
+}
+
+interface Winner {
+  user: User;
+  correctBallSelections: number;
+  gameMode: GameModeType;
 }
 
 export type {
@@ -78,7 +109,12 @@ export type {
   UserAuth,
   UserSession,
   UserSessionStatus,
+  Player,
   BingoBall,
+  BoardModel,
   BingoCard,
   Game,
+  Range,
+  PlayerSelection,
+  Winner,
 };
