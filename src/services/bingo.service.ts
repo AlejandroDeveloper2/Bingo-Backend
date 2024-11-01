@@ -27,7 +27,7 @@ class BingoService extends GameService {
 
   public getAllBingoGames = async (): Promise<Game[]> => {
     try {
-      const games: Game[] = await GameModel.find({});
+      const games: Game[] = await GameModel.find({}).populate("winner");
       return games;
     } catch (e: unknown) {
       return handleError(e);
@@ -36,7 +36,9 @@ class BingoService extends GameService {
 
   public getSingleBingoGame = async (gameId: string): Promise<Game> => {
     try {
-      const game: Game | null = await GameModel.findOne({ _id: gameId });
+      const game: Game | null = await GameModel.findOne({
+        _id: gameId,
+      }).populate("winner");
       if (!game) throw new ErrorResponse(404, "NOT_FOUND");
       return game;
     } catch (e: unknown) {
@@ -125,7 +127,7 @@ class BingoService extends GameService {
     }
   };
 
-  public getRandomBingoBall = async (
+  public launchRandomBingoBall = async (
     gameId: string
   ): Promise<Pick<Game, "randomBingoBalls">> => {
     try {
@@ -147,32 +149,32 @@ class BingoService extends GameService {
 
   public selectBingoBall = async (
     gameId: string,
-    cardCode: string,
     ballId: string,
-    { playerEmail, selectedBall }: PlayerSelection
-  ): Promise<Pick<Game, "bingoCards">> => {
+    { playerEmail, selectedBall, cardCode }: PlayerSelection
+  ): Promise<Pick<Game, "bingoCards" | "players">> => {
     try {
-      const { players } = await this.verifyPlayerBingoBall(
+      const player: Player = await this.verifyPlayerBingoBall(
         gameId,
-        cardCode,
         playerEmail,
         selectedBall
       );
 
-      const updatedBingoCards: Pick<Game, "bingoCards"> | null =
+      const updatedBingoCards: Pick<Game, "bingoCards" | "players"> | null =
         await GameModel.findOneAndUpdate(
           {
             _id: gameId,
             "bingoCards.code": cardCode,
-            "bingoCards.balls._id": new Types.ObjectId(ballId),
+            "bingoCards.balls._id": ballId,
             "players.email": playerEmail,
           },
           {
             $set: {
               "bingoCards.$[bingoCard].balls.$[ball].selected":
                 selectedBall.selected,
+              "bingoCards.$[bingoCard].balls.$[ball].enabled":
+                selectedBall.enabled,
               "players.$[player].correctBallSelections":
-                players[0].correctBallSelections + 1,
+                player.correctBallSelections + 1,
             },
           },
           {
@@ -183,7 +185,8 @@ class BingoService extends GameService {
               { "player.email": playerEmail },
             ],
           }
-        );
+        ).select("bingoCards players");
+
       if (!updatedBingoCards) throw new ErrorResponse(404, "NOT_FOUND");
       return updatedBingoCards;
     } catch (e: unknown) {
@@ -193,7 +196,7 @@ class BingoService extends GameService {
 
   public setBingoWinner = async (
     gameId: string,
-    { user, correctBallSelections, gameMode }: Winner
+    { userId, correctBallSelections, gameMode }: Winner
   ): Promise<Pick<Game, "winner">> => {
     try {
       const isWinner: boolean = this.verifyBingoWinner(
@@ -206,13 +209,37 @@ class BingoService extends GameService {
       const bingoWinner: Pick<Game, "winner"> | null =
         await GameModel.findOneAndUpdate(
           { _id: gameId },
-          { winner: user },
+          { winner: userId },
           { new: true }
-        ).select("winner");
+        )
+          .select("winner")
+          .populate("winner");
 
       if (!bingoWinner) throw new ErrorResponse(404, "NOT_FOUND");
 
       return bingoWinner;
+    } catch (e: unknown) {
+      return handleError(e);
+    }
+  };
+
+  public resetBingoGame = async (gameId: string) => {
+    try {
+      const updatedGame: Game | null = await GameModel.findOneAndUpdate(
+        { _id: gameId },
+        {
+          players: [],
+          bingoCards: [],
+          randomBingoBalls: [],
+          gameMode: "full",
+          gameStatus: "unstart",
+          winner: null,
+        },
+        { new: true }
+      );
+
+      if (!updatedGame) throw new ErrorResponse(404, "NOT_FOUND");
+      return updatedGame;
     } catch (e: unknown) {
       return handleError(e);
     }

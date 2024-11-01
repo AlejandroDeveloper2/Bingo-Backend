@@ -1,6 +1,7 @@
 import { Schema, model } from "mongoose";
 
 import { BingoBall, BingoCard, Game, Player } from "@interfaces/.";
+import { UserSchema } from "./user.model";
 
 const PlayerSchema = new Schema<Player>(
   {
@@ -55,7 +56,7 @@ const BingoCardSchema = new Schema<BingoCard>(
       type: [BingoBallSchema],
       required: true,
     },
-    user: { type: Schema.Types.ObjectId, ref: "users", required: true },
+    user: { type: UserSchema, required: true },
     code: {
       type: String,
       required: true,
@@ -70,7 +71,7 @@ const BingoCardSchema = new Schema<BingoCard>(
 const GameSchema = new Schema<Game>(
   {
     players: { type: [PlayerSchema], required: true },
-    winner: { type: Schema.Types.ObjectId, ref: "users", required: true },
+    winner: { type: Schema.Types.ObjectId, ref: "users", default: null },
     bingoCards: {
       type: [BingoCardSchema],
       required: true,

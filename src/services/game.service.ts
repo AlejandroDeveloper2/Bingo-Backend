@@ -1,4 +1,10 @@
-import { BingoBall, Game, GameModeType } from "@interfaces/index";
+import {
+  BingoBall,
+  BingoCard,
+  Game,
+  GameModeType,
+  Player,
+} from "@interfaces/index";
 
 import { gameBingoBalls } from "@constants/index";
 
@@ -9,6 +15,18 @@ import { ErrorResponse, handleError } from "@utils/index";
 class GameService {
   private gameBingoBalls: BingoBall[] = gameBingoBalls;
   constructor() {}
+
+  private validateBingoBall = (bingoGame: Game, selectedBall: BingoBall) => {
+    const isBallValid: boolean = bingoGame.randomBingoBalls.some(
+      (ball) =>
+        ball.name === selectedBall.name && ball.number === selectedBall.number
+    );
+
+    if (!isBallValid) throw new ErrorResponse(400, "BAD_REQUEST");
+
+    return isBallValid;
+  };
+
   public getRandomBall = (): BingoBall | undefined => {
     const gameBingoBallsCopy = [...this.gameBingoBalls];
     for (let i = gameBingoBallsCopy.length - 1; i > 0; i--) {
@@ -28,36 +46,26 @@ class GameService {
 
   public verifyPlayerBingoBall = async (
     gameId: string,
-    cardCode: string,
     playerEmail: string,
     selectedBall: BingoBall
-  ): Promise<Pick<Game, "randomBingoBalls" | "players">> => {
+  ): Promise<Player> => {
     try {
-      const bingoGame: Pick<Game, "randomBingoBalls" | "players"> | null =
-        await GameModel.findOne(
-          {
-            _id: gameId,
-            "bingoCards.code": cardCode,
-            "players.email": playerEmail,
-          },
-          {
-            "bingoCards.$": 1,
-            "players.$": 1,
-          }
-        ).select("randomBingoBalls players");
+      const bingoGame: Game | null = await GameModel.findOne({
+        _id: gameId,
+      });
 
       if (!bingoGame) throw new ErrorResponse(404, "NOT_FOUND");
       if (bingoGame.randomBingoBalls.length === 0)
         throw new ErrorResponse(404, "EMPTY");
 
-      const isBallValid: boolean = bingoGame.randomBingoBalls.some(
-        (ball) =>
-          ball.name === selectedBall.name && ball.number === selectedBall.number
-      );
+      const player: Player = bingoGame.players.filter(
+        (player) => player.email === playerEmail
+      )[0];
 
-      if (!isBallValid) throw new ErrorResponse(400, "BAD_REQUEST");
+      if (!player) throw new ErrorResponse(404, "NOT_FOUND");
 
-      return bingoGame;
+      this.validateBingoBall(bingoGame, selectedBall);
+      return player;
     } catch (e: unknown) {
       return handleError(e);
     }

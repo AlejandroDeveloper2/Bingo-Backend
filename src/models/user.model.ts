@@ -2,7 +2,7 @@ import { Schema, model } from "mongoose";
 
 import { User } from "@interfaces/.";
 
-const UserSchema = new Schema<User>(
+export const UserSchema = new Schema<User>(
   {
     name: {
       type: String,

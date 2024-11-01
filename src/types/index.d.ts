@@ -89,10 +89,11 @@ interface Range {
 interface PlayerSelection {
   playerEmail: string;
   selectedBall: BingoBall;
+  cardCode: string;
 }
 
 interface Winner {
-  user: User;
+  userId: string;
   correctBallSelections: number;
   gameMode: GameModeType;
 }
