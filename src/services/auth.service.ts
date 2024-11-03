@@ -1,3 +1,4 @@
+import jwt, { JwtPayload } from "jsonwebtoken";
 import {
   User,
   UserAuth,
@@ -63,7 +64,6 @@ class AuthService {
 
       return {
         sessionToken,
-        user,
       };
     } catch (e: unknown) {
       return handleError(e);
@@ -85,6 +85,36 @@ class AuthService {
 
       if (!updatedSession) throw new ErrorResponse(404, "NOT_FOUND");
       return updatedSession;
+    } catch (e: unknown) {
+      return handleError(e);
+    }
+  };
+
+  public verifyAuthToken = (token: string): JwtPayload => {
+    try {
+      const decoded = jwt.verify(
+        token,
+        <string>process.env.JWT_SECRET
+      ) as JwtPayload;
+      return decoded;
+    } catch (error: unknown) {
+      if (error instanceof jwt.TokenExpiredError)
+        throw new ErrorResponse(403, "EXPIRED_TOKEN");
+      else if (error instanceof jwt.JsonWebTokenError)
+        throw new ErrorResponse(400, "INVALID_TOKEN");
+      else throw new ErrorResponse(500, "SERVER_ERROR");
+    }
+  };
+
+  public getUserProfile = async (
+    userEmail: string
+  ): Promise<Omit<User, "password">> => {
+    try {
+      const userProfile: Omit<User, "password"> | null =
+        await UserModel.findOne({ email: userEmail });
+
+      if (!userProfile) throw new ErrorResponse(404, "NOT_FOUND");
+      return userProfile;
     } catch (e: unknown) {
       return handleError(e);
     }

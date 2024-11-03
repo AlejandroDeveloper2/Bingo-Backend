@@ -15,6 +15,8 @@ app.use(
   })
 );
 
+app.use(express.urlencoded({ extended: true }));
+
 /* Le decimos a express que toda la data que se va a manejar es de tipo JSON*/
 app.use(express.json());
 

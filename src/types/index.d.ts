@@ -10,7 +10,8 @@ type ErrorType =
   | "INVALID_SESSION"
   | "SERVER_ERROR"
   | "BAD_REQUEST"
-  | "EMPTY";
+  | "EMPTY"
+  | "EXPIRED_TOKEN";
 
 type GameModeType = "full" | "diagonal" | "vertical" | "horizontal" | "corners";
 type BingoBallNameType = "B" | "I" | "N" | "G" | "O";
@@ -40,7 +41,6 @@ interface UserAuth {
 
 interface UserSession {
   sessionToken: string;
-  user: User;
 }
 
 interface UserSessionStatus {

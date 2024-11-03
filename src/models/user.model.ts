@@ -18,7 +18,7 @@ export const UserSchema = new Schema<User>(
     },
     sessionStatus: {
       type: String,
-      required: true,
+      default: "offline",
       enum: ["online", "offline"],
     },
   },
