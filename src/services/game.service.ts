@@ -13,7 +13,9 @@ import { GameModel } from "@models/index";
 import { ErrorResponse, handleError } from "@utils/index";
 
 class GameService {
-  private gameBingoBalls: BingoBall[] = gameBingoBalls;
+  private gameBingoBalls: BingoBall[] = [...gameBingoBalls];
+  private remainingBalls = [...this.gameBingoBalls];
+
   constructor() {}
 
   private validateBingoBall = (bingoGame: Game, selectedBall: BingoBall) => {
@@ -27,19 +29,15 @@ class GameService {
     return isBallValid;
   };
 
-  public getRandomBall = (): BingoBall | undefined => {
-    const gameBingoBallsCopy = [...this.gameBingoBalls];
-    for (let i = gameBingoBallsCopy.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [gameBingoBallsCopy[i], gameBingoBallsCopy[j]] = [
-        gameBingoBallsCopy[j],
-        gameBingoBallsCopy[i],
-      ];
+  public getRandomBall = (): BingoBall | null => {
+    if (this.remainingBalls.length === 0) {
+      return null;
     }
 
-    const randomBall: BingoBall | undefined = gameBingoBallsCopy
-      .slice(0, 1)
-      .shift();
+    const randomIndex = Math.floor(Math.random() * this.gameBingoBalls.length);
+    const randomBall = this.remainingBalls[randomIndex];
+
+    this.remainingBalls.splice(randomIndex, 1);
 
     return randomBall;
   };

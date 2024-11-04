@@ -85,13 +85,14 @@ class BingoService extends GameService {
 
   public removePlayerFromBingo = async (
     gameId: string,
-    playerId: string
+    playerId: string,
+    { code }: { code: string }
   ): Promise<Pick<Game, "players">> => {
     try {
       const gamePlayers: Pick<Game, "players"> | null =
         await GameModel.findOneAndUpdate(
           { _id: gameId },
-          { $pull: { players: { _id: playerId } } },
+          { $pull: { players: { _id: playerId }, bingoCards: { code } } },
           { new: true }
         ).select("players");
 
@@ -131,8 +132,11 @@ class BingoService extends GameService {
     gameId: string
   ): Promise<Pick<Game, "randomBingoBalls">> => {
     try {
+      const game: Game | null = await GameModel.findOne({ _id: gameId });
+      if (!game) throw new ErrorResponse(404, "NOT_FOUND");
+
       const randomBall = this.getRandomBall();
-      if (!randomBall) throw new ErrorResponse(500, "SERVER_ERROR");
+      if (!randomBall) throw new ErrorResponse(400, "REPEAT_BALL");
 
       const randomBingoBalls: Pick<Game, "randomBingoBalls"> | null =
         await GameModel.findOneAndUpdate(
@@ -141,6 +145,8 @@ class BingoService extends GameService {
           { new: true }
         ).select("randomBingoBalls");
       if (!randomBingoBalls) throw new ErrorResponse(404, "NOT_FOUND");
+      if (randomBingoBalls.randomBingoBalls.length === 75)
+        throw new ErrorResponse(401, "BALLS_RUN_OUT");
       return randomBingoBalls;
     } catch (e: unknown) {
       return handleError(e);

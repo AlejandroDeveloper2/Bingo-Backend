@@ -196,16 +196,18 @@ class BingoController {
   };
 
   public deletePlayerFromBingo = async (
-    { params }: Request,
+    { body, params }: Request,
     res: Response
   ): Promise<void> => {
     try {
       const gameId: string = params.gameId;
       const playerId: string = params.playerId;
+      const codeCard: { code: string } = body;
 
       const updatedGame: Pick<Game, "players"> = await removePlayerFromBingo(
         gameId,
-        playerId
+        playerId,
+        codeCard
       );
 
       handleHttpResponse<Pick<Game, "players">>(
@@ -300,6 +302,10 @@ class BingoController {
       const message: string =
         errorType === "NOT_FOUND"
           ? "¡Id del juego incorrecto!, por favor verifique."
+          : errorType === "BALLS_RUN_OUT"
+          ? " ¡Ya salieron todas las balotas!"
+          : errorType === "REPEAT_BALL"
+          ? "Balota repetida!"
           : "¡Hubo un error al lanzar la balota de bingo!";
 
       handleHttpResponse<null>(
@@ -384,7 +390,7 @@ class BingoController {
         errorType === "NOT_FOUND"
           ? "¡Id del juego incorrecto!, por favor verifique."
           : errorType === "BAD_REQUEST"
-          ? "¡No has ganado aún!"
+          ? "¡Has sido descalificado!, Cantaste Bingo sin haber ganado."
           : "¡Hubo un error al cantar Bingo!";
 
       handleHttpResponse<null>(

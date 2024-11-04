@@ -3,6 +3,7 @@ import { JwtPayload } from "jsonwebtoken";
 
 type SessionStatusType = "online" | "offline";
 type ErrorType =
+  | "REPEAT_BALL"
   | "NOT_FOUND"
   | "RECORD_ALREADY"
   | "INCORRECT_PASSWORD"
@@ -11,7 +12,8 @@ type ErrorType =
   | "SERVER_ERROR"
   | "BAD_REQUEST"
   | "EMPTY"
-  | "EXPIRED_TOKEN";
+  | "EXPIRED_TOKEN"
+  | "BALLS_RUN_OUT";
 
 type GameModeType = "full" | "diagonal" | "vertical" | "horizontal" | "corners";
 type BingoBallNameType = "B" | "I" | "N" | "G" | "O";
