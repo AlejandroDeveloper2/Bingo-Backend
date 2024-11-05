@@ -8,6 +8,9 @@ import { router } from "@routes/index";
 import db from "@config/mongo";
 import { Game } from "./types";
 
+import { startCountdown } from "./utils";
+import { countdownInterval, countdownTime } from "@utils/countDown";
+
 /* Inicializamos nuestro servidor con express */
 const app = express();
 
@@ -48,17 +51,29 @@ const io = new Server(server, {
 });
 
 /**Configuramos los eventos de nuestra conección Socket */
-
 io.on("connection", (socket) => {
   console.log("a user connected");
 
+  /** Temporizador en tiempo real para lanzar balotas aleatorias */
+  socket.on("start_countdown", () => {
+    startCountdown(io);
+    console.log("Timer iniciado");
+    socket.emit("timer_update", countdownTime);
+  });
+
+  /* Limpiar el intervalo al desconectar*/
+  socket.on("disconnect", () => {
+    if (countdownInterval && io.engine.clientsCount === 0) {
+      clearInterval(countdownInterval); // Limpia el temporizador si no hay clientes conectados
+    }
+  });
+
+  /** Eventos del bingo */
   socket.on("update_bingo_status", (updatedBingo: Game) => {
-    console.log(updatedBingo);
     socket.broadcast.emit("updated_status", updatedBingo);
   });
 
   socket.on("join_to_bingo", (updatedBingo: Game) => {
-    console.log(updatedBingo);
     socket.broadcast.emit("joined_to_bingo", updatedBingo);
   });
 

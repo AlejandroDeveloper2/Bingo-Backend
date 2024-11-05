@@ -18,8 +18,12 @@ class GameService {
 
   constructor() {}
 
+  public resetGameBingoBalls(): void {
+    this.remainingBalls = [...this.gameBingoBalls];
+  }
+
   private validateBingoBall = (bingoGame: Game, selectedBall: BingoBall) => {
-    const isBallValid: boolean = bingoGame.randomBingoBalls.some(
+    const isBallValid: boolean = bingoGame.launchedBallsHistory.some(
       (ball) =>
         ball.name === selectedBall.name && ball.number === selectedBall.number
     );
@@ -34,7 +38,7 @@ class GameService {
       return null;
     }
 
-    const randomIndex = Math.floor(Math.random() * this.gameBingoBalls.length);
+    const randomIndex = Math.floor(Math.random() * this.remainingBalls.length);
     const randomBall = this.remainingBalls[randomIndex];
 
     this.remainingBalls.splice(randomIndex, 1);
@@ -53,7 +57,7 @@ class GameService {
       });
 
       if (!bingoGame) throw new ErrorResponse(404, "NOT_FOUND");
-      if (bingoGame.randomBingoBalls.length === 0)
+      if (bingoGame.launchedBallsHistory.length === 0)
         throw new ErrorResponse(404, "EMPTY");
 
       const player: Player = bingoGame.players.filter(

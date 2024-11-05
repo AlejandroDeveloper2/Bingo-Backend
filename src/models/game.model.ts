@@ -76,7 +76,11 @@ const GameSchema = new Schema<Game>(
       type: [BingoCardSchema],
       required: true,
     },
-    randomBingoBalls: {
+    randomLaunchedBall: {
+      type: BingoBallSchema,
+      default: null,
+    },
+    launchedBallsHistory: {
       type: [BingoBallSchema],
       required: true,
     },

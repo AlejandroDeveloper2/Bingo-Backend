@@ -78,7 +78,8 @@ interface Game {
   players: Player[];
   winner: User | null;
   bingoCards: BingoCard[];
-  randomBingoBalls: BingoBall[];
+  randomLaunchedBall: BingoBall | null;
+  launchedBallsHistory: BingoBall[];
   gameMode: GameModeType;
   gameStatus: GameStatusType;
 }

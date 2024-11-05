@@ -130,23 +130,27 @@ class BingoService extends GameService {
 
   public launchRandomBingoBall = async (
     gameId: string
-  ): Promise<Pick<Game, "randomBingoBalls">> => {
+  ): Promise<Pick<Game, "randomLaunchedBall" | "launchedBallsHistory">> => {
     try {
       const game: Game | null = await GameModel.findOne({ _id: gameId });
       if (!game) throw new ErrorResponse(404, "NOT_FOUND");
 
       const randomBall = this.getRandomBall();
-      if (!randomBall) throw new ErrorResponse(400, "REPEAT_BALL");
 
-      const randomBingoBalls: Pick<Game, "randomBingoBalls"> | null =
-        await GameModel.findOneAndUpdate(
-          { _id: gameId },
-          { $push: { randomBingoBalls: randomBall } },
-          { new: true }
-        ).select("randomBingoBalls");
+      if (!randomBall) throw new ErrorResponse(400, "BALLS_RUN_OUT");
+
+      const randomBingoBalls: Pick<
+        Game,
+        "randomLaunchedBall" | "launchedBallsHistory"
+      > | null = await GameModel.findOneAndUpdate(
+        { _id: gameId },
+        {
+          $push: { launchedBallsHistory: randomBall },
+          randomLaunchedBall: randomBall,
+        },
+        { new: true }
+      ).select("randomLaunchedBall launchedBallsHistory");
       if (!randomBingoBalls) throw new ErrorResponse(404, "NOT_FOUND");
-      if (randomBingoBalls.randomBingoBalls.length === 75)
-        throw new ErrorResponse(401, "BALLS_RUN_OUT");
       return randomBingoBalls;
     } catch (e: unknown) {
       return handleError(e);
@@ -231,12 +235,14 @@ class BingoService extends GameService {
 
   public resetBingoGame = async (gameId: string) => {
     try {
+      this.resetGameBingoBalls();
       const updatedGame: Game | null = await GameModel.findOneAndUpdate(
         { _id: gameId },
         {
           players: [],
           bingoCards: [],
-          randomBingoBalls: [],
+          randomLaunchedBall: null,
+          launchedBallsHistory: [],
           gameMode: "full",
           gameStatus: "unstart",
           winner: null,

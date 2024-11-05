@@ -285,10 +285,14 @@ class BingoController {
     try {
       const gameId: string = params.gameId;
 
-      const updatedGame: Pick<Game, "randomBingoBalls"> =
-        await launchRandomBingoBall(gameId);
+      const updatedGame: Pick<
+        Game,
+        "randomLaunchedBall" | "launchedBallsHistory"
+      > = await launchRandomBingoBall(gameId);
 
-      handleHttpResponse<Pick<Game, "randomBingoBalls">>(
+      handleHttpResponse<
+        Pick<Game, "randomLaunchedBall" | "launchedBallsHistory">
+      >(
         res,
         {
           data: updatedGame,
@@ -304,8 +308,6 @@ class BingoController {
           ? "¡Id del juego incorrecto!, por favor verifique."
           : errorType === "BALLS_RUN_OUT"
           ? " ¡Ya salieron todas las balotas!"
-          : errorType === "REPEAT_BALL"
-          ? "Balota repetida!"
           : "¡Hubo un error al lanzar la balota de bingo!";
 
       handleHttpResponse<null>(
