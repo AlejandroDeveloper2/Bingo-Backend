@@ -10,4 +10,4 @@ export {
   verifyHorizontalMode,
   verifyCornersMode,
 } from "./verifyGameMode";
-export { default as startCountdown } from "./countDown";
+export { startCountdown, stopCountdown } from "./countDown";

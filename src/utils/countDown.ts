@@ -4,7 +4,7 @@ export let countdownTime: number = 5;
 export let countdownInterval: NodeJS.Timeout;
 
 // Función para iniciar el temporizador
-const startCountdown = (io: Server) => {
+export const startCountdown = (io: Server) => {
   clearInterval(countdownInterval);
   countdownTime = 5; // Reiniciar el temporizador
 
@@ -21,4 +21,6 @@ const startCountdown = (io: Server) => {
   }, 1000);
 };
 
-export default startCountdown;
+export const stopCountdown = () => {
+  clearInterval(countdownInterval);
+};

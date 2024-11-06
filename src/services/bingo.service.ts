@@ -132,11 +132,7 @@ class BingoService extends GameService {
     gameId: string
   ): Promise<Pick<Game, "randomLaunchedBall" | "launchedBallsHistory">> => {
     try {
-      const game: Game | null = await GameModel.findOne({ _id: gameId });
-      if (!game) throw new ErrorResponse(404, "NOT_FOUND");
-
       const randomBall = this.getRandomBall();
-
       if (!randomBall) throw new ErrorResponse(400, "BALLS_RUN_OUT");
 
       const randomBingoBalls: Pick<

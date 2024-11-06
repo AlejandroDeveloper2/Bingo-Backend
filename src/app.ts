@@ -9,7 +9,11 @@ import db from "@config/mongo";
 import { Game } from "./types";
 
 import { startCountdown } from "./utils";
-import { countdownInterval, countdownTime } from "@utils/countDown";
+import {
+  countdownInterval,
+  countdownTime,
+  stopCountdown,
+} from "@utils/countDown";
 
 /* Inicializamos nuestro servidor con express */
 const app = express();
@@ -57,8 +61,12 @@ io.on("connection", (socket) => {
   /** Temporizador en tiempo real para lanzar balotas aleatorias */
   socket.on("start_countdown", () => {
     startCountdown(io);
-    console.log("Timer iniciado");
     socket.emit("timer_update", countdownTime);
+  });
+
+  /** Para el temporizador cuando ya salen todas las balotas o hay un ganador */
+  socket.on("stop_timer", () => {
+    stopCountdown();
   });
 
   /* Limpiar el intervalo al desconectar*/
