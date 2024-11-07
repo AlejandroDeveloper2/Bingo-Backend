@@ -13,14 +13,14 @@ import { GameModel } from "@models/index";
 import { ErrorResponse, handleError } from "@utils/index";
 
 class GameService {
-  private gameBingoBalls: BingoBall[] = [...gameBingoBalls];
-  private remainingBalls = [...this.gameBingoBalls];
+  // private gameBingoBalls: BingoBall[] = [...gameBingoBalls];
+  // private remainingBalls = [...this.gameBingoBalls];
 
   constructor() {}
 
-  public resetGameBingoBalls(): void {
-    this.remainingBalls = [...this.gameBingoBalls];
-  }
+  // public resetGameBingoBalls(): void {
+  //   this.remainingBalls = [...this.gameBingoBalls];
+  // }
 
   private validateBingoBall = (bingoGame: Game, selectedBall: BingoBall) => {
     const isBallValid: boolean = bingoGame.launchedBallsHistory.some(
@@ -33,18 +33,18 @@ class GameService {
     return isBallValid;
   };
 
-  public getRandomBall = (): BingoBall | null => {
-    if (this.remainingBalls.length === 0) {
-      return null;
-    }
+  // public getRandomBall = (): BingoBall | null => {
+  //   if (this.remainingBalls.length === 0) {
+  //     return null;
+  //   }
 
-    const randomIndex = Math.floor(Math.random() * this.remainingBalls.length);
-    const randomBall = this.remainingBalls[randomIndex];
+  //   const randomIndex = Math.floor(Math.random() * this.remainingBalls.length);
+  //   const randomBall = this.remainingBalls[randomIndex];
 
-    this.remainingBalls.splice(randomIndex, 1);
+  //   this.remainingBalls.splice(randomIndex, 1);
 
-    return randomBall;
-  };
+  //   return randomBall;
+  // };
 
   public verifyPlayerBingoBall = async (
     gameId: string,

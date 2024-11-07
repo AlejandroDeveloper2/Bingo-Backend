@@ -1,6 +1,7 @@
 import { Types } from "mongoose";
 
 import {
+  BingoBall,
   BingoCard,
   Game,
   Player,
@@ -11,7 +12,12 @@ import {
 
 import { GameModel, UserModel } from "@models/index";
 
-import { BingoBoard, ErrorResponse, handleError } from "@utils/index";
+import {
+  BingoBoard,
+  ErrorResponse,
+  handleError,
+  RandomBallLauncher,
+} from "@utils/index";
 import GameService from "./game.service";
 
 class BingoService extends GameService {
@@ -128,24 +134,19 @@ class BingoService extends GameService {
     }
   };
 
-  public launchRandomBingoBall = async (
-    gameId: string
-  ): Promise<Pick<Game, "randomLaunchedBall" | "launchedBallsHistory">> => {
+  public addBingoBallToHistory = async (
+    gameId: string,
+    launchedBall: BingoBall
+  ): Promise<Pick<Game, "launchedBallsHistory">> => {
     try {
-      const randomBall = this.getRandomBall();
-      if (!randomBall) throw new ErrorResponse(400, "BALLS_RUN_OUT");
-
-      const randomBingoBalls: Pick<
-        Game,
-        "randomLaunchedBall" | "launchedBallsHistory"
-      > | null = await GameModel.findOneAndUpdate(
-        { _id: gameId },
-        {
-          $push: { launchedBallsHistory: randomBall },
-          randomLaunchedBall: randomBall,
-        },
-        { new: true }
-      ).select("randomLaunchedBall launchedBallsHistory");
+      const randomBingoBalls: Pick<Game, "launchedBallsHistory"> | null =
+        await GameModel.findOneAndUpdate(
+          { _id: gameId },
+          {
+            $push: { launchedBallsHistory: launchedBall },
+          },
+          { new: true }
+        ).select("launchedBallsHistory");
       if (!randomBingoBalls) throw new ErrorResponse(404, "NOT_FOUND");
       return randomBingoBalls;
     } catch (e: unknown) {
@@ -231,13 +232,11 @@ class BingoService extends GameService {
 
   public resetBingoGame = async (gameId: string) => {
     try {
-      this.resetGameBingoBalls();
       const updatedGame: Game | null = await GameModel.findOneAndUpdate(
         { _id: gameId },
         {
           players: [],
           bingoCards: [],
-          randomLaunchedBall: null,
           launchedBallsHistory: [],
           gameMode: "full",
           gameStatus: "unstart",

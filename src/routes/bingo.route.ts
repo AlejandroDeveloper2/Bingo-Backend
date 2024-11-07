@@ -13,7 +13,7 @@ const {
   addPlayerToBingoGame,
   deletePlayerFromBingo,
   createPlayerBingoCard,
-  getRandomBingoBall,
+  postBallToHistory,
   patchBingoBall,
   patchBingoWinner,
   cleanBingoGame,
@@ -27,7 +27,7 @@ router
   .patch("/join/:gameId", checkJwt, addPlayerToBingoGame)
   .patch("/deletePlayer/:gameId/:playerId", checkJwt, deletePlayerFromBingo)
   .patch("/newCard/:gameId/:userId", checkJwt, createPlayerBingoCard)
-  .get("/randomBall/:gameId", checkJwt, getRandomBingoBall)
+  .patch("/ballHistory/:gameId", checkJwt, postBallToHistory)
   .patch("/selectBall/:gameId/:ballId", checkJwt, patchBingoBall)
   .patch("/winner/:gameId", checkJwt, patchBingoWinner)
   .get("/reset/:gameId", checkJwt, cleanBingoGame);

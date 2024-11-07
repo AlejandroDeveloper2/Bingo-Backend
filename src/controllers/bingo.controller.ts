@@ -1,6 +1,12 @@
 import { Request, Response } from "express";
 
-import { Game, Player, PlayerSelection, Winner } from "@interfaces/index";
+import {
+  BingoBall,
+  Game,
+  Player,
+  PlayerSelection,
+  Winner,
+} from "@interfaces/index";
 
 import { BingoService } from "@services/.";
 import { ErrorResponse, handleHttpResponse } from "@utils/index";
@@ -13,7 +19,7 @@ const {
   joinToBingoGame,
   removePlayerFromBingo,
   generatePlayerBingoCard,
-  launchRandomBingoBall,
+  addBingoBallToHistory,
   selectBingoBall,
   setBingoWinner,
   resetBingoGame,
@@ -278,25 +284,22 @@ class BingoController {
     }
   };
 
-  public getRandomBingoBall = async (
-    { params }: Request,
+  public postBallToHistory = async (
+    { params, body }: Request,
     res: Response
   ): Promise<void> => {
     try {
       const gameId: string = params.gameId;
+      const launchedBall: BingoBall = body;
 
-      const updatedGame: Pick<
-        Game,
-        "randomLaunchedBall" | "launchedBallsHistory"
-      > = await launchRandomBingoBall(gameId);
+      const updatedGame: Pick<Game, "launchedBallsHistory"> =
+        await addBingoBallToHistory(gameId, launchedBall);
 
-      handleHttpResponse<
-        Pick<Game, "randomLaunchedBall" | "launchedBallsHistory">
-      >(
+      handleHttpResponse<Pick<Game, "launchedBallsHistory">>(
         res,
         {
           data: updatedGame,
-          message: "¡Balota lanzada!",
+          message: "¡Balota añadida al historial!",
           code: 200,
         },
         200
@@ -306,9 +309,7 @@ class BingoController {
       const message: string =
         errorType === "NOT_FOUND"
           ? "¡Id del juego incorrecto!, por favor verifique."
-          : errorType === "BALLS_RUN_OUT"
-          ? " ¡Ya salieron todas las balotas!"
-          : "¡Hubo un error al lanzar la balota de bingo!";
+          : "¡Hubo un error al guardar la balota en el historial!";
 
       handleHttpResponse<null>(
         res,

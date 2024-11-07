@@ -8,12 +8,7 @@ import { router } from "@routes/index";
 import db from "@config/mongo";
 import { Game } from "./types";
 
-import { startCountdown } from "./utils";
-import {
-  countdownInterval,
-  countdownTime,
-  stopCountdown,
-} from "@utils/countDown";
+import { RandomBallLauncher } from "./utils";
 
 /* Inicializamos nuestro servidor con express */
 const app = express();
@@ -58,22 +53,27 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("a user connected");
 
-  /** Temporizador en tiempo real para lanzar balotas aleatorias */
-  socket.on("start_countdown", () => {
-    startCountdown(io);
-    socket.emit("timer_update", countdownTime);
-  });
+  /** Inicializamos la clase para lanzar balotas aleatorias */
+  const randomBallLauncher = new RandomBallLauncher(io);
 
-  /** Para el temporizador cuando ya salen todas las balotas o hay un ganador */
-  socket.on("stop_timer", () => {
-    stopCountdown();
-  });
+  socket.on(
+    "enter_game_room",
+    ({ gameId, token }: { gameId: string; token: string }) => {
+      socket.join("bingo_room");
+      console.log(`Usuario ${socket.id} se ha unido a la sala de bingo`);
 
-  /* Limpiar el intervalo al desconectar*/
-  socket.on("disconnect", () => {
-    if (countdownInterval && io.engine.clientsCount === 0) {
-      clearInterval(countdownInterval); // Limpia el temporizador si no hay clientes conectados
+      // Iniciar el juego cuando el primer usuario se una a la sala
+      if (
+        !randomBallLauncher.isGameStarted &&
+        io.sockets.adapter.rooms.get("bingo_room")?.size === 2
+      ) {
+        randomBallLauncher.startBallLaunching(gameId, token);
+      }
     }
+  );
+
+  socket.on("disconnect", () => {
+    console.log("Usuario desconectado:", socket.id);
   });
 
   /** Eventos del bingo */
@@ -91,10 +91,6 @@ io.on("connection", (socket) => {
 
   socket.on("generate_card_bingo", (updatedBingo: Game) => {
     socket.broadcast.emit("generated_card", updatedBingo);
-  });
-
-  socket.on("launch_random_ball", (updatedBingo: Game) => {
-    socket.broadcast.emit("launched_random_ball", updatedBingo);
   });
 
   socket.on("select_ball", (updatedBingo: Game) => {

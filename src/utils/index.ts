@@ -10,4 +10,4 @@ export {
   verifyHorizontalMode,
   verifyCornersMode,
 } from "./verifyGameMode";
-export { startCountdown, stopCountdown } from "./countDown";
+export { default as RandomBallLauncher } from "./randomBallLauncher";
