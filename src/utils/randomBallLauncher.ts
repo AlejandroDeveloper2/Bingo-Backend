@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
-import { gameBingoBalls } from "@constants/index";
 
+import { gameBingoBalls } from "@constants/index";
 import { BingoBall, Game, ServerResponse } from "@interfaces/index";
 
 let intervalId: NodeJS.Timeout | null = null;
@@ -20,7 +20,39 @@ export default class RandomBallLauncher {
     this.remainingBalls = [...this.gameBingoBalls];
   }
 
-  private launchRandomBall = async (gameId: string, token: string) => {
+  private async saveBallToHistory(
+    gameId: string,
+    token: string,
+    ball: BingoBall
+  ): Promise<Pick<Game, "launchedBallsHistory">> {
+    /**Añadir balota lanzada al historial */
+    const res = await fetch(
+      `${process.env.BACKEND_URL}/api/bingo/ballHistory/${gameId}`,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(ball),
+      }
+    );
+
+    if (!res.ok) {
+      this.io.emit("message", "Error al guardar la balota en el historial");
+    }
+
+    const { data }: ServerResponse<Pick<Game, "launchedBallsHistory">> =
+      await res.json();
+
+    return data;
+  }
+
+  private launchRandomBall = async (
+    gameId: string,
+    token: string,
+    players: number
+  ) => {
     if (this.remainingBalls.length === 0) {
       this.io.emit("message", "¡El juego ha terminado!");
       this.stopBallLaunching();
@@ -31,35 +63,25 @@ export default class RandomBallLauncher {
     const randomBall = this.remainingBalls[randomIndex];
 
     this.remainingBalls.splice(randomIndex, 1);
+    this.io.emit("launched_ball", randomBall);
 
     /**Añadir balota lanzada al historial */
-    const res = await fetch(
-      `${process.env.BACKEND_URL}/api/bingo/ballHistory/${gameId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(randomBall),
-      }
+    const updatedHistory = await this.saveBallToHistory(
+      gameId,
+      token,
+      randomBall
     );
-    const { data }: ServerResponse<Pick<Game, "launchedBallsHistory">> =
-      await res.json();
-    this.io.emit("launched_ball", randomBall);
-    this.io.emit("updated_history", { ...data });
-    this.timer = 5; // Reiniciar el temporizador
 
-    if (!res.ok) {
-      this.io.emit("message", "Error al guardar la balota en el historial");
-    }
+    this.io.emit("updated_history", { ...updatedHistory });
+
+    this.timer = 5; // Reiniciar el temporizador
   };
 
   // Función para iniciar el temporizador de balotas
-  private startTimer(gameId: string, token: string) {
+  private startTimer(gameId: string, token: string, players: number) {
     intervalId = setInterval(() => {
       if (this.timer === 0) {
-        this.launchRandomBall(gameId, token);
+        this.launchRandomBall(gameId, token, players);
       } else {
         this.timer--;
         this.io.emit("timer_update", this.timer); // Emitir el tiempo restante a los clientes
@@ -67,7 +89,7 @@ export default class RandomBallLauncher {
     }, 1000);
   }
 
-  private stopBallLaunching(): void {
+  public stopBallLaunching(): void {
     if (intervalId) {
       clearInterval(intervalId);
       intervalId = null;
@@ -75,11 +97,15 @@ export default class RandomBallLauncher {
     }
   }
 
-  public startBallLaunching(gameId: string, token: string): void {
+  public startBallLaunching(
+    gameId: string,
+    token: string,
+    players: number
+  ): void {
     if (!this.isGameStarted) {
       this.inicializeBalls();
       this.isGameStarted = true;
-      this.startTimer(gameId, token);
+      this.startTimer(gameId, token, players);
     }
   }
 }
