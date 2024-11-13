@@ -60,7 +60,6 @@ io.on("connection", (socket) => {
     "enter_game_room",
     ({ gameId, token }: { gameId: string; token: string }) => {
       socket.join("bingo_room");
-      console.log(`Usuario ${socket.id} se ha unido a la sala de bingo`);
       const roomSize: undefined | number =
         io.sockets.adapter.rooms.get("bingo_room")?.size;
 
@@ -72,11 +71,16 @@ io.on("connection", (socket) => {
   );
 
   // Eliminar al cliente de una sala específica
-  socket.on("leave_bingo_room", ({ roomName, players }) => {
-    socket.leave(roomName);
-    console.log(`Cliente ${socket.id} dejó la sala ${roomName}`);
-    if (players.length === 0) randomBallLauncher.stopBallLaunching();
-  });
+  socket.on(
+    "leave_bingo_room",
+    ({ roomName, players }: { roomName: string; players: number }) => {
+      socket.leave(roomName);
+      if (players <= 1) {
+        randomBallLauncher.stopBallLaunching();
+        console.log("Juego Terminado");
+      }
+    }
+  );
 
   socket.on("disconnect", () => {
     console.log("Usuario desconectado:", socket.id);
