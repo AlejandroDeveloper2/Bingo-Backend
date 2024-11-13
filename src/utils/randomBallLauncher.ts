@@ -48,11 +48,7 @@ export default class RandomBallLauncher {
     return data;
   }
 
-  private launchRandomBall = async (
-    gameId: string,
-    token: string,
-    players: number
-  ) => {
+  private launchRandomBall = async (gameId: string, token: string) => {
     if (this.remainingBalls.length === 0) {
       this.io.emit("message", "¡El juego ha terminado!");
       this.stopBallLaunching();
@@ -78,10 +74,10 @@ export default class RandomBallLauncher {
   };
 
   // Función para iniciar el temporizador de balotas
-  private startTimer(gameId: string, token: string, players: number) {
+  private startTimer(gameId: string, token: string) {
     intervalId = setInterval(() => {
       if (this.timer === 0) {
-        this.launchRandomBall(gameId, token, players);
+        this.launchRandomBall(gameId, token);
       } else {
         this.timer--;
         this.io.emit("timer_update", this.timer); // Emitir el tiempo restante a los clientes
@@ -97,15 +93,11 @@ export default class RandomBallLauncher {
     }
   }
 
-  public startBallLaunching(
-    gameId: string,
-    token: string,
-    players: number
-  ): void {
+  public startBallLaunching(gameId: string, token: string): void {
     if (!this.isGameStarted) {
       this.inicializeBalls();
       this.isGameStarted = true;
-      this.startTimer(gameId, token, players);
+      this.startTimer(gameId, token);
     }
   }
 }

@@ -58,15 +58,7 @@ io.on("connection", (socket) => {
 
   socket.on(
     "enter_game_room",
-    ({
-      gameId,
-      token,
-      players,
-    }: {
-      gameId: string;
-      token: string;
-      players: number;
-    }) => {
+    ({ gameId, token }: { gameId: string; token: string }) => {
       socket.join("bingo_room");
       console.log(`Usuario ${socket.id} se ha unido a la sala de bingo`);
       const roomSize: undefined | number =
@@ -74,7 +66,7 @@ io.on("connection", (socket) => {
 
       // Iniciar el juego cuando el primer usuario se una a la sala
       if (!randomBallLauncher.isGameStarted && roomSize && roomSize >= 2) {
-        randomBallLauncher.startBallLaunching(gameId, token, players);
+        randomBallLauncher.startBallLaunching(gameId, token);
       }
     }
   );
