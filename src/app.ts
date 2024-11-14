@@ -46,7 +46,7 @@ server.listen(port, () => {
 /**Socket IO */
 const io = new Server(server, {
   cors: {
-    origin: process.env.URL_FRONTEND,
+    origin: process.env.URL_PRODUCTION_FRONTEND,
   },
 });
 

@@ -27,7 +27,7 @@ export default class RandomBallLauncher {
   ): Promise<Pick<Game, "launchedBallsHistory">> {
     /**Añadir balota lanzada al historial */
     const res = await fetch(
-      `${process.env.BACKEND_URL}/api/bingo/ballHistory/${gameId}`,
+      `${process.env.URL_PRODUCTION_BACKEND}/api/bingo/ballHistory/${gameId}`,
       {
         method: "PATCH",
         headers: {
