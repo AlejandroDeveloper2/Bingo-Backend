@@ -12,12 +12,7 @@ import {
 
 import { GameModel, UserModel } from "@models/index";
 
-import {
-  BingoBoard,
-  ErrorResponse,
-  handleError,
-  RandomBallLauncher,
-} from "@utils/index";
+import { BingoBoard, ErrorResponse, handleError } from "@utils/index";
 import GameService from "./game.service";
 
 class BingoService extends GameService {
@@ -75,6 +70,12 @@ class BingoService extends GameService {
     player: Player
   ): Promise<Pick<Game, "players">> => {
     try {
+      const game: Pick<Game, "players"> | null = await GameModel.findOne({
+        players: { $elemMatch: { email: player.email } },
+      }).select("players");
+
+      if (game) return game;
+
       const gamePlayers: Pick<Game, "players"> | null =
         await GameModel.findOneAndUpdate(
           { _id: gameId },
