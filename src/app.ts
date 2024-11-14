@@ -3,6 +3,7 @@ import http from "http";
 import "dotenv/config";
 import cors from "cors";
 import { Server } from "socket.io";
+import "module-alias/register";
 
 import { router } from "@routes/index";
 import db from "@config/mongo";
